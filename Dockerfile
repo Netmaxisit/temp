@@ -1,23 +1,27 @@
-# Use the official Node.js image as the base image
-FROM node:14
+# Use the official PHP image with Apache
+FROM php:7.4-apache
 
 # Set the working directory in the container
-WORKDIR /app
+WORKDIR /var/www/html
 
-# Copy the package.json and package-lock.json files to the container
-COPY package*.json ./
-
-# Install the application dependencies
-RUN npm install
-
-# Copy the rest of the application code to the container
+# Copy the PHP application files to the container
 COPY . .
 
-# Build the application
-RUN npm run build
+# Install any PHP extensions if needed
+# For example, if you need mysqli:
+# RUN docker-php-ext-install mysqli
 
-# Expose the port on which the application will run
+# Apache configuration to listen on port 3000
+RUN sed -i 's/80/3000/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
+
+# Enable Apache mod_rewrite
+RUN a2enmod rewrite
+
+# Set permissions
+RUN chown -R www-data:www-data /var/www/html
+
+# Expose port 3000
 EXPOSE 3000
 
-# Start the application
-CMD ["npm", "start"]
+# Start Apache in the foreground
+CMD ["apache2-foreground"]
